@@ -848,7 +848,7 @@ app.get('*', (req, res, next) => {
 // Start server listener
 app.listen(PORT, () => {
     console.log(`========================================================`);
-    console.log(`  cmthakurclasses API Server running on port ${PORT}`);
+    console.log(`  CMThakur Classes API Server running on port ${PORT}`);
     console.log(`  SQLite database seeded and connected successfully.`);
     console.log(`========================================================`);
 });
