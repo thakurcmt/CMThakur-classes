@@ -833,7 +833,7 @@ EduApp.db = {
     },
 
     // Submit homework PDF file (supports saving a new virtual assignment too)
-    submitHomework(homeworkId, fileName, fileSize, studentId = null, title = null, subject = null, fileDataUrl = null) {
+    async submitHomework(homeworkId, fileName, fileSize, studentId = null, title = null, subject = null, fileDataUrl = null) {
         const homework = this.getHomework();
         let index = homework.findIndex(hw => hw.id === homeworkId);
         let activeStudentId = studentId || (this.getCurrentUser() ? this.getCurrentUser().id : null);
@@ -890,29 +890,33 @@ EduApp.db = {
         if (EduApp.USE_SERVER_BACKEND) {
             const token = sessionStorage.getItem('edu_platform_auth_token');
             if (token) {
-                fetch(`${EduApp.API_BASE}/api/homework`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        homeworkId: homeworkId || (newHw ? newHw.id : null),
-                        fileName,
-                        fileSize,
-                        studentId: studentId || (homeworkId ? null : activeStudentId),
-                        title: title || (homeworkId ? null : newHw.title),
-                        subject: subject || (homeworkId ? null : newHw.subject),
-                        fileDataUrl
-                    })
-                }).catch(err => console.warn("Background submitHomework sync failed:", err.message));
+                try {
+                    await fetch(`${EduApp.API_BASE}/api/homework`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            homeworkId: homeworkId || (newHw ? newHw.id : null),
+                            fileName,
+                            fileSize,
+                            studentId: studentId || (homeworkId ? null : activeStudentId),
+                            title: title || (homeworkId ? null : newHw.title),
+                            subject: subject || (homeworkId ? null : newHw.subject),
+                            fileDataUrl
+                        })
+                    });
+                } catch (err) {
+                    console.warn("Background submitHomework sync failed:", err.message);
+                }
             }
         }
         return true;
     },
 
     // Create a new homework assignment for all students in the database
-    createHomeworkAssignment(title, subject) {
+    async createHomeworkAssignment(title, subject) {
         const homework = this.getHomework();
         const users = this.getUsers().filter(u => u.role === 'student');
         
@@ -942,14 +946,18 @@ EduApp.db = {
         if (EduApp.USE_SERVER_BACKEND) {
             const token = sessionStorage.getItem('edu_platform_auth_token');
             if (token) {
-                fetch(`${EduApp.API_BASE}/api/homework/assignments`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ title, subject })
-                }).catch(err => console.warn("Background createHomeworkAssignment sync failed:", err.message));
+                try {
+                    await fetch(`${EduApp.API_BASE}/api/homework/assignments`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ title, subject })
+                    });
+                } catch (err) {
+                    console.warn("Background createHomeworkAssignment sync failed:", err.message);
+                }
             }
         }
         return true;
@@ -961,7 +969,7 @@ EduApp.db = {
     },
 
     // Save attendance list for today
-    saveAttendance(todaySheet) {
+    async saveAttendance(todaySheet) {
         const attendance = this.getAttendance();
         attendance.today = todaySheet;
         
@@ -987,14 +995,18 @@ EduApp.db = {
                     studentName: r.name || r.studentName,
                     status: r.status
                 }));
-                fetch(`${EduApp.API_BASE}/api/attendance`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ attendanceList: list })
-                }).catch(err => console.warn("Background saveAttendance sync failed:", err.message));
+                try {
+                    await fetch(`${EduApp.API_BASE}/api/attendance`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ attendanceList: list })
+                    });
+                } catch (err) {
+                    console.warn("Background saveAttendance sync failed:", err.message);
+                }
             }
         }
         return true;
@@ -1092,18 +1104,56 @@ EduApp.db = {
     },
 
     // Add a new test (legacy helper)
-    addTest(testData) {
+    async addTest(testData) {
         const tests = this.getTests();
         tests.push(testData);
         localStorage.setItem(this.KEYS.TESTS, JSON.stringify(tests));
+
+        // Sync with backend server
+        if (EduApp.USE_SERVER_BACKEND) {
+            const token = sessionStorage.getItem('edu_platform_auth_token');
+            if (token) {
+                try {
+                    await fetch(`${EduApp.API_BASE}/api/tests`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(testData)
+                    });
+                } catch (err) {
+                    console.warn("Background addTest sync failed:", err.message);
+                }
+            }
+        }
         return testData;
     },
 
     // Add a new class (batch) directly
-    addClass(classData) {
+    async addClass(classData) {
         const classes = this.getClasses();
         classes.push(classData);
         localStorage.setItem(this.KEYS.CLASSES, JSON.stringify(classes));
+
+        // Sync with backend server
+        if (EduApp.USE_SERVER_BACKEND) {
+            const token = sessionStorage.getItem('edu_platform_auth_token');
+            if (token) {
+                try {
+                    await fetch(`${EduApp.API_BASE}/api/classes`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(classData)
+                    });
+                } catch (err) {
+                    console.warn("Background addClass sync failed:", err.message);
+                }
+            }
+        }
         return true;
     },
 
@@ -1203,7 +1253,7 @@ EduApp.db = {
     },
 
     // Create a new batch join request
-    createJoinRequest(studentId, classId) {
+    async createJoinRequest(studentId, classId) {
         const requests = this.getJoinRequests();
         const users = this.getUsers();
         const classes = this.getClasses();
@@ -1230,21 +1280,25 @@ EduApp.db = {
         if (EduApp.USE_SERVER_BACKEND) {
             const token = sessionStorage.getItem('edu_platform_auth_token');
             if (token) {
-                fetch(`${EduApp.API_BASE}/api/classes/requests`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ classId })
-                }).catch(err => console.warn("Background createJoinRequest sync failed:", err.message));
+                try {
+                    await fetch(`${EduApp.API_BASE}/api/classes/requests`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ classId })
+                    });
+                } catch (err) {
+                    console.warn("Background createJoinRequest sync failed:", err.message);
+                }
             }
         }
         return true;
     },
 
     // Approve join request (adds student to batch and marks approved)
-    approveJoinRequest(requestId) {
+    async approveJoinRequest(requestId) {
         const requests = this.getJoinRequests();
         const index = requests.findIndex(r => r.id === requestId);
         if (index !== -1) {
@@ -1259,14 +1313,18 @@ EduApp.db = {
             if (EduApp.USE_SERVER_BACKEND) {
                 const token = sessionStorage.getItem('edu_platform_auth_token');
                 if (token) {
-                    fetch(`${EduApp.API_BASE}/api/classes/requests/${requestId}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ status: 'approved' })
-                    }).catch(err => console.warn("Background approveJoinRequest sync failed:", err.message));
+                    try {
+                        await fetch(`${EduApp.API_BASE}/api/classes/requests/${requestId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ status: 'approved' })
+                        });
+                    } catch (err) {
+                        console.warn("Background approveJoinRequest sync failed:", err.message);
+                    }
                 }
             }
             return true;
@@ -1275,7 +1333,7 @@ EduApp.db = {
     },
 
     // Reject join request
-    rejectJoinRequest(requestId) {
+    async rejectJoinRequest(requestId) {
         const requests = this.getJoinRequests();
         const index = requests.findIndex(r => r.id === requestId);
         if (index !== -1) {
@@ -1286,14 +1344,18 @@ EduApp.db = {
             if (EduApp.USE_SERVER_BACKEND) {
                 const token = sessionStorage.getItem('edu_platform_auth_token');
                 if (token) {
-                    fetch(`${EduApp.API_BASE}/api/classes/requests/${requestId}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ status: 'rejected' })
-                    }).catch(err => console.warn("Background rejectJoinRequest sync failed:", err.message));
+                    try {
+                        await fetch(`${EduApp.API_BASE}/api/classes/requests/${requestId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ status: 'rejected' })
+                        });
+                    } catch (err) {
+                        console.warn("Background rejectJoinRequest sync failed:", err.message);
+                    }
                 }
             }
             return true;
