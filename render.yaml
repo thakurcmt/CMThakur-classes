@@ -2,9 +2,8 @@ services:
   - type: web
     name: cmthakurclasses
     runtime: node
-    buildCommand: npm install
-    startCommand: node server.js
-    rootDir: server
+    buildCommand: cd server && npm install
+    startCommand: node server/server.js
     envVars:
       - key: PORT
         value: 3000
