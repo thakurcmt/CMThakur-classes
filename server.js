@@ -13,8 +13,19 @@ app.use(cors());
 // Set JSON payload size limit slightly higher for PDF base64 file uploads
 app.use(express.json({ limit: '15mb' }));
 
-// Serve static assets from the parent directory
-app.use(express.static(path.join(__dirname, '..')));
+// Serve static assets with robust path auto-detection
+const fs = require('fs');
+let staticPath = path.join(__dirname, '..');
+if (!fs.existsSync(path.join(staticPath, 'index.html'))) {
+    console.warn(`WARNING: index.html not found in parent directory (${staticPath}). Searching alternatives...`);
+    if (fs.existsSync(path.join(__dirname, 'index.html'))) {
+        staticPath = __dirname;
+    } else if (fs.existsSync(path.join(__dirname, '../..', 'index.html'))) {
+        staticPath = path.join(__dirname, '../..');
+    }
+}
+console.log(`Static assets directory resolved to: ${staticPath}`);
+app.use(express.static(staticPath));
 
 // Middleware to authenticate JWT tokens
 const authenticateToken = (req, res, next) => {
@@ -842,7 +853,7 @@ app.post('/api/document-sets', authenticateToken, async (req, res) => {
 // Fallback wildcard to serve index.html for frontend routing
 app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api/')) return next();
-    res.sendFile(path.join(__dirname, '..', 'index.html'));
+    res.sendFile(path.join(staticPath, 'index.html'));
 });
 
 // Start server listener
