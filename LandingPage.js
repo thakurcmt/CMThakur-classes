@@ -107,8 +107,18 @@ EduApp.LandingPage = {
             <!-- Footer -->
             <footer>
                 <div class="container">
-                    <div class="footer-logo">
-                        CMThakur<span>Classes</span>
+                    <div class="footer-logo" style="display: flex; align-items: center; gap: 10px; text-transform: uppercase;">
+                        <svg viewBox="0 0 24 24" width="32" height="32" style="display: block;">
+                            <defs>
+                                <linearGradient id="logo-grad-footer" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#F43F5E" />
+                                    <stop offset="100%" stop-color="#FB923C" />
+                                </linearGradient>
+                            </defs>
+                            <circle cx="12" cy="12" r="10" fill="url(#logo-grad-footer)" />
+                            <path d="M14.5 8.5 A3.5 3.5 0 1 0 14.5 15.5" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" />
+                        </svg>
+                        CMTHAKUR<span>CLASSES</span>
                     </div>
                     <ul class="footer-nav">
                         <li><a href="#about" id="footer-about-link">About</a></li>

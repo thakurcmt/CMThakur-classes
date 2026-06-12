@@ -39,9 +39,18 @@ EduApp.Header = {
 
         header.innerHTML = `
             <div class="container">
-                <div class="logo" id="logo-btn">
-                    <div class="logo-icon">C</div>
-                    CMThakur<span>Classes</span>
+                <div class="logo" id="logo-btn" style="text-transform: uppercase;">
+                    <svg viewBox="0 0 24 24" width="32" height="32" style="display: block;">
+                        <defs>
+                            <linearGradient id="logo-grad-header" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#F43F5E" />
+                                <stop offset="100%" stop-color="#FB923C" />
+                            </linearGradient>
+                        </defs>
+                        <circle cx="12" cy="12" r="10" fill="url(#logo-grad-header)" />
+                        <path d="M14.5 8.5 A3.5 3.5 0 1 0 14.5 15.5" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" />
+                    </svg>
+                    CMTHAKUR<span>CLASSES</span>
                 </div>
                 <ul class="nav-links">
                     ${navLinksHtml}
